@@ -7,7 +7,8 @@ namespace WebChatterServer.Hubs
 {
     public class Message
     {
-        public string ClientId { get; set; }
+
+        public string Username { get; set; }
 
         public string Type { get; set; }
 
