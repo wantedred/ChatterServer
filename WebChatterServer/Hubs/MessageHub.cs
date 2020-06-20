@@ -8,20 +8,13 @@ using WebChatterServer.Models;
 
 namespace WebChatterServer.Hubs
 {
-    public class MessageHub : Hub
+    public partial class MessageHub : Hub
     {
         public static readonly Dictionary<string, string> UserList = new Dictionary<string, string>();
 
         public MessageHub()
         {
             
-        }
-
-        public override async Task OnConnectedAsync()
-        {
-            Console.WriteLine(Context.ConnectionId);
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Public");
-            await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
