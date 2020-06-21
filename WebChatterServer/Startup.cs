@@ -7,27 +7,34 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using WebChatterServer.Hubs;
+using WebChatterServer.Models.Database.Contexts;
 
 namespace WebChatterServer
 {
     public class Startup
     {
+        
+        private IConfiguration Configuration { get; }
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            
+            services.AddDbContext<MainContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+            
             services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
             {
                 builder
@@ -55,7 +62,7 @@ namespace WebChatterServer
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<MessageHub>("/MessageHub");
+                endpoints.MapHub<MainHub>("/MessageHub");
                 endpoints.MapControllers();
             });
 
