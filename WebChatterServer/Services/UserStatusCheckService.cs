@@ -26,6 +26,7 @@ namespace WebChatterServer.Services
             IQueryable<UserStatus> offlineUsers = context.UserStatuses.Where(s => s.Status == false);
             foreach (var user in offlineUsers)
             {
+                Console.WriteLine("Purging user: " + user.Username);
                 context.UserStatuses.Remove(user);
             }
             context.SaveChanges();

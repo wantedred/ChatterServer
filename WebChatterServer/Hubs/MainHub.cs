@@ -19,8 +19,6 @@ namespace WebChatterServer.Hubs
             _mainContext = mainContext;
         }
 
-        protected static readonly Dictionary<string, string> UserList = new Dictionary<string, string>();
-        
         public override async Task OnConnectedAsync()
         {
             Console.WriteLine("New Connection: " + Context.ConnectionId);

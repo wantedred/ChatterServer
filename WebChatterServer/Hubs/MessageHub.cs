@@ -7,50 +7,63 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WebChatterServer.Models;
 using WebChatterServer.Models.Database.BindingModels;
+using WebChatterServer.Models.ResourceModels;
 
 namespace WebChatterServer.Hubs
 {
     public partial class MainHub
     {
 
-        public async Task<bool> RegisterUsername(string username)
+        public async Task<Response> RegisterUsername(User user)
         {
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(user.Username))
             {
-                return false;
+                return new Response{ Success = false, ErrorMessage = "Please give an username"};
             }
 
-            UserStatus userStatus =
-                await _mainContext.UserStatuses.FirstOrDefaultAsync(user => user.Username== username);
+            UserStatus userStatus = string.IsNullOrEmpty(user.UserId)
+                ? await _mainContext.UserStatuses.FirstOrDefaultAsync(u => u.Username == user.Username)
+                : await _mainContext.UserStatuses.FirstOrDefaultAsync(id => id.ConnectionId == user.UserId);
             
             if (userStatus != null)
             {
-                Console.WriteLine("Found user with name already returning");
-                return false;
+                Console.WriteLine("User status result is null");
+                return new Response{ Success = false, ErrorMessage = "Username is already in use"};
             }
 
             Console.WriteLine("Didn't find a user with the name already");
-            await _mainContext.UserStatuses.AddAsync(new UserStatus
+
+            if (string.IsNullOrEmpty(user.UserId))
             {
-                Username = username,
-                ConnectionId = Context.ConnectionId,
-                Status = true
-            });
+                await _mainContext.UserStatuses.AddAsync(new UserStatus
+                {
+                    Username = user.Username,
+                    ConnectionId = Context.ConnectionId,
+                    Status = true
+                });
+            }
+            else
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                userStatus.ConnectionId = Context.ConnectionId;
+                userStatus.Status = true;
+            }
             await _mainContext.SaveChangesAsync();
-            
-            await Clients.Group("Public").SendAsync("NewMessage", new Message { Username = "System", Text = "Please welcome " + username + " to the chat!", Type = "received", Date = DateTime.Now });
-            await Clients.All.SendAsync("ReceiveUsername", new ReceiveUsername { NewUsername = username });
-            return true;
+        
+            await Clients.Group("Public").SendAsync("NewMessage", new Message { Username = "System", Text = "Please welcome " + user.Username + " to the chat!", Type = "received", Date = DateTime.Now });
+            await Clients.All.SendAsync("ReceiveUsername", new ReceiveUsername { NewUsername = user.Username });
+            return new Response{ Success = true };
         }
 
-        public async Task<bool> RequestAllUsers()
+        public async Task<Response> RequestAllUsers()
         {
-            if (UserList.Count <= 0)
-            {
-                return false;
-            }
-
             IQueryable<UserStatus> userStatus = _mainContext.UserStatuses.Where(user => user.Status == true).AsNoTracking();
+
+            if (userStatus == null)
+            {
+                return new Response{Success = false};
+            }
+            
             List<User> users = new List<User>();
             foreach (var data in userStatus)
             {
@@ -61,23 +74,23 @@ namespace WebChatterServer.Hubs
                 });
             }
             await Clients.Caller.SendAsync("ReceiveAllUsers", new { users });
-            return true;
+            return new Response { Success = true };
         }
 
-        public async Task<bool> NewMessage(Message message)
+        public async Task<Response> NewMessage(Message message)
         {
             if (message.Text.Length < 4)
             {
-                return false;
+                return new Response{ Success = false, ErrorMessage = "Message has to be longer than 4 characters"};
             }
 
             if (message.Username.Length < 4)
             {
-                return false;
+                return new Response{ Success = false, ErrorMessage = "Message has to shorter than 4 characters"};
             }
             
             await Clients.All.SendAsync("NewMessage", message);
-            return true;
+            return new Response { Success = true };
         }
     }
 }
