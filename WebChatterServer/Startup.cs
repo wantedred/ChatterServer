@@ -62,7 +62,7 @@ namespace WebChatterServer
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<MainHub>("/MessageHub");
+                endpoints.MapHub<MainHub>("/MainHub");
                 endpoints.MapControllers();
             });
 
