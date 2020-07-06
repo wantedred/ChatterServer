@@ -58,11 +58,11 @@ namespace WebChatterServer
             app.UseStaticFiles();
             app.UseAuthorization();
 
-            app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200").AllowCredentials());
+            app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://webchatter.io").AllowCredentials());
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<MainHub>("/MainHub");
+                endpoints.MapHub<MainHub>("api/MainHub");
                 endpoints.MapControllers();
             });
 

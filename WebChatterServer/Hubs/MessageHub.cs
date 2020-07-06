@@ -49,9 +49,12 @@ namespace WebChatterServer.Hubs
                 userStatus.Status = true;
             }
             await _mainContext.SaveChangesAsync();
-        
+
+            /*for (int i = 0; i < 100; i++) { }*/
+
             await Clients.Group("Public").SendAsync("NewMessage", new Message { Username = "System", Text = "Please welcome " + user.Username + " to the chat!", Type = "received", Date = DateTime.Now });
-            await Clients.All.SendAsync("ReceiveUsername", new ReceiveUsername { NewUsername = user.Username });
+
+                await Clients.All.SendAsync("ReceiveUsername", new ReceiveUsername { NewUsername = user.Username });
             return new Response{ Success = true };
         }
 
@@ -73,6 +76,7 @@ namespace WebChatterServer.Hubs
                     Username = data.Username
                 });
             }
+            Console.WriteLine("Users preparing to send: " + users.Count);
             await Clients.Caller.SendAsync("ReceiveAllUsers", new { users });
             return new Response { Success = true };
         }
