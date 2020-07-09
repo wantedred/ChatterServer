@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR.Protocol;
@@ -42,7 +45,11 @@ namespace WebChatterServer
                 .AllowAnyHeader()
                 .AllowAnyOrigin();
             }));
-            services.AddSignalR();
+            services.AddSignalR(options =>
+            {
+                //options.EnableDetailedErrors = true;
+                options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,16 +60,25 @@ namespace WebChatterServer
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseRouting();
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseAuthorization();
-
-            app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://webchatter.io").AllowCredentials());
+            
+            app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://webchatter.io", "http://localhost:4200").AllowCredentials());
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<MainHub>("api/MainHub");
+                endpoints.MapHub<MainHub>("api/MainHub", options =>
+                {
+                    options.Transports = HttpTransportType.LongPolling;
+                    options.LongPolling.PollTimeout = TimeSpan.FromSeconds(90);
+                });
                 endpoints.MapControllers();
             });
 

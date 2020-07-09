@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +20,6 @@ namespace WebChatterServer.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            Console.WriteLine("New Connection: " + Context.ConnectionId);
             await Groups.AddToGroupAsync(Context.ConnectionId, "Public");
             await base.OnConnectedAsync();
         }
