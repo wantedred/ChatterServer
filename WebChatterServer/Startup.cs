@@ -70,7 +70,7 @@ namespace WebChatterServer
             app.UseStaticFiles();
             app.UseAuthorization();
             
-            app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://webchatter.io", "http://localhost:4200").AllowCredentials());
+            app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://webchatter.io").AllowCredentials());
 
             app.UseEndpoints(endpoints =>
             {
